@@ -1,18 +1,28 @@
 import { createClient } from "@supabase/supabase-js"
-import { supabaseUrl, supabaseServiceRoleKey } from "./config"
+import { supabaseUrl } from "./config"
 import type { Database } from "@/lib/database.types"
 
-// Für administrative Operationen (nur serverseitig verwenden!)
-// Dieser Client umgeht Row Level Security und hat vollen Zugriff
+let adminClient: ReturnType<typeof createClient<Database>> | undefined
+
 export function createAdminClient() {
-  if (!supabaseServiceRoleKey) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set")
+  // Nur auf der Server-Seite verwenden!
+  if (typeof window !== "undefined") {
+    throw new Error("Admin client can only be used on the server side")
   }
 
-  return createClient<Database>(supabaseUrl!, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
+  if (!adminClient) {
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceRoleKey) {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set")
+    }
+
+    adminClient = createClient<Database>(supabaseUrl!, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  }
+
+  return adminClient
 }

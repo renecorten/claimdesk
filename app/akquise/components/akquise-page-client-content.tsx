@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { toast } from "@/components/ui/use-toast"
-import { CheckCircle } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 interface AkquisePageClientContentProps {
   newCaseId?: string
@@ -12,9 +11,8 @@ export function AkquisePageClientContent({ newCaseId }: AkquisePageClientContent
   useEffect(() => {
     if (newCaseId) {
       toast({
-        title: "Akquise-Fall erstellt",
-        description: "Der neue Fall wurde erfolgreich erstellt und ist jetzt in der Liste sichtbar.",
-        action: <CheckCircle className="h-4 w-4 text-green-600" />,
+        title: "✅ Akquise-Fall erstellt",
+        description: "Der neue Fall wurde erfolgreich erstellt und ist jetzt sichtbar.",
       })
     }
   }, [newCaseId])

@@ -1,33 +1,30 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { supabaseUrl, supabaseAnonKey } from "./config"
 import type { Database } from "@/lib/database.types"
 
-export function createSupabaseServerClient() {
-  const cookieStore = cookies()
-  return createServerClient<Database>(supabaseUrl!, supabaseAnonKey!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+let serverClient: ReturnType<typeof createServerClient<Database>> | undefined
+
+export async function createSupabaseServerClient() {
+  if (!serverClient) {
+    const cookieStore = await cookies()
+    serverClient = createServerClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            /* ignorieren, wenn aus Server-Component aufgerufen */
+          }
+        },
       },
-      set(name: string, value: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value, ...options })
-        } catch (error) {
-          // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: "", ...options })
-        } catch (error) {
-          // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
+    })
+  }
+  return serverClient
 }
+
+/* Alias für alte Imports – vermeidet zukünftige Fehler */
+export { createSupabaseServerClient as createClient }
