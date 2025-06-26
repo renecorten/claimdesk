@@ -1,36 +1,13 @@
 "use client"
 
-import React, { useState, useTransition } from "react"
+import React, { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { hideNewsItemAction, createAcquisitionCaseAction } from "@/app/actions"
+import { hideNewsItemAction } from "@/app/actions"
 import { toast } from "@/components/ui/use-toast"
 import type { Database } from "@/lib/database.types"
-import {
-  ExternalLink,
-  EyeOff,
-  Clock,
-  MapPin,
-  Sparkles,
-  FileText,
-  ChevronDown,
-  ChevronRight,
-  Briefcase,
-  Loader2,
-} from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ExternalLink, EyeOff, Clock, MapPin, Sparkles, FileText, ChevronDown, ChevronRight } from "lucide-react"
 
 type NewsItem = Database["public"]["Tables"]["news_cache"]["Row"]
 
@@ -57,68 +34,6 @@ const getSeverityBadgeColor = (severity: string | null) => {
   }
 
   return colorConfig[severity as keyof typeof colorConfig] || "bg-gray-200 text-gray-900 border-gray-300"
-}
-
-// Komponente für den "Fall erstellen"-Dialog
-function CreateCaseDialog({ item, children }: { item: NewsItem; children: React.ReactNode }) {
-  const [isPending, startTransition] = useTransition()
-
-  const handleSubmit = (formData: FormData) => {
-    startTransition(async () => {
-      const result = await createAcquisitionCaseAction(formData)
-      if (result?.message) {
-        if (result.success === false) {
-          toast({ title: "Fehler", description: result.message, variant: "destructive" })
-        }
-        // Bei Erfolg wird automatisch zur Akquise-Seite weitergeleitet
-      }
-    })
-  }
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
-        <form action={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Akquise-Fall erstellen</DialogTitle>
-            <DialogDescription>Erstellen Sie einen neuen Akquise-Fall aus dieser Radar-Meldung.</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <p className="text-sm">
-              <span className="font-semibold">Meldung:</span> {item.ai_title || item.title}
-            </p>
-            <input type="hidden" name="newsItemId" value={item.id} />
-            <div>
-              <Label htmlFor="priority">Priorität</Label>
-              <Select name="priority" defaultValue="medium">
-                <SelectTrigger id="priority">
-                  <SelectValue placeholder="Priorität auswählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Niedrig</SelectItem>
-                  <SelectItem value="medium">Mittel</SelectItem>
-                  <SelectItem value="high">Hoch</SelectItem>
-                  <SelectItem value="urgent">Dringend</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Abbrechen
-              </Button>
-            </DialogClose>
-            <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Fall erstellen
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
 }
 
 export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItemTableProps) {
@@ -423,12 +338,12 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                 >
                   {showOriginalContent.has(item.id) ? (
                     <>
-                      <Sparkles className="h-4 w-4 text-blue-500" />
+                      <Sparkles className="h-3 w-3 text-blue-500" />
                       <span>KI</span>
                     </>
                   ) : (
                     <>
-                      <FileText className="h-4 w-4 text-gray-500" />
+                      <FileText className="h-3 w-3 text-gray-500" />
                       <span>Original</span>
                     </>
                   )}
@@ -441,7 +356,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                   onClick={() => generateAISummary(item.id)}
                   className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium hover:bg-blue-200 transition-colors"
                 >
-                  <Sparkles className="h-4 w-4 mr-1" />
+                  <Sparkles className="h-3 w-3 mr-1" />
                   Analysieren
                 </button>
               )}
@@ -449,7 +364,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
               {/* Loading State */}
               {generatingItems.has(item.id) && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                  <Sparkles className="h-4 w-4 mr-1 animate-pulse" />
+                  <Sparkles className="h-3 w-3 mr-1 animate-pulse" />
                   Analysiere...
                 </span>
               )}
@@ -457,15 +372,6 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
 
             {/* Expand/Actions */}
             <div className="flex items-center gap-2">
-              <CreateCaseDialog item={item}>
-                <button
-                  className="p-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                  title="Fall erstellen"
-                >
-                  <Briefcase className="h-4 w-4" />
-                </button>
-              </CreateCaseDialog>
-
               {item.original_link && (
                 <button
                   className="p-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
@@ -497,92 +403,90 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
         </div>
 
         {/* Expanded Content */}
-        {isExpanded && (
-          <div className="p-4 border-t border-gray-200 bg-white">
-            {/* Content Mode Indicator */}
-            {(item.ai_title || item.ai_summary) && (
-              <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-gray-50">
-                {showOriginalContent.has(item.id) ? (
-                  <>
-                    <FileText className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Original RSS-Content</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">KI-optimierter Content</span>
-                  </>
-                )}
-              </div>
-            )}
+        <div className="p-4 border-t border-gray-200 bg-white">
+          {/* Content Mode Indicator */}
+          {(item.ai_title || item.ai_summary) && (
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-gray-50">
+              {showOriginalContent.has(item.id) ? (
+                <>
+                  <FileText className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Original RSS-Content</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700">KI-optimierter Content</span>
+                </>
+              )}
+            </div>
+          )}
 
-            {/* Full Content */}
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-semibold mb-2 text-gray-900">
-                  {showOriginalContent.has(item.id) ? "Volltext:" : "Optimierter Inhalt:"}
-                </h4>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {showOriginalContent.has(item.id)
-                    ? item.summary
+          {/* Full Content */}
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-2 text-gray-900">
+                {showOriginalContent.has(item.id) ? "Volltext:" : "Optimierter Inhalt:"}
+              </h4>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {showOriginalContent.has(item.id)
+                  ? item.summary
+                    ? decodeHtmlEntities(item.summary)
+                    : item.content
+                      ? decodeHtmlEntities(item.content)
+                      : "Keine Zusammenfassung verfügbar."
+                  : item.ai_summary ||
+                    (item.summary
                       ? decodeHtmlEntities(item.summary)
                       : item.content
                         ? decodeHtmlEntities(item.content)
-                        : "Keine Zusammenfassung verfügbar."
-                    : item.ai_summary ||
-                      (item.summary
-                        ? decodeHtmlEntities(item.summary)
-                        : item.content
-                          ? decodeHtmlEntities(item.content)
-                          : "Keine Zusammenfassung verfügbar.")}
-                </p>
-              </div>
+                        : "Keine Zusammenfassung verfügbar.")}
+              </p>
+            </div>
 
-              {/* AI Key Points */}
-              {item.ai_summary &&
-                !showOriginalContent.has(item.id) &&
-                item.ai_key_points &&
-                item.ai_key_points.length > 0 && (
-                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <h5 className="text-sm font-semibold mb-2 text-blue-900 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Wichtige Punkte:
-                    </h5>
-                    <ul className="space-y-2">
-                      {item.ai_key_points.slice(0, 3).map((point, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
-                          <span className="text-blue-800">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
+            {/* AI Key Points */}
+            {item.ai_summary &&
+              !showOriginalContent.has(item.id) &&
+              item.ai_key_points &&
+              item.ai_key_points.length > 0 && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <h5 className="text-sm font-semibold mb-2 text-blue-900 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Wichtige Punkte:
+                  </h5>
+                  <ul className="space-y-2">
+                    {item.ai_key_points.slice(0, 3).map((point, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
+                        <span className="text-blue-800">{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+            {/* Additional Meta Info */}
+            <div className="pt-3 border-t border-gray-200 space-y-2">
+              <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{formatDate(item.published_at)}</span>
+                </div>
+                {(item.ai_location || item.location) && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span>{item.ai_location || item.location}</span>
                   </div>
                 )}
-
-              {/* Additional Meta Info */}
-              <div className="pt-3 border-t border-gray-200 space-y-2">
-                <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+                {item.feed_type && (
                   <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatDate(item.published_at)}</span>
+                    <span className="font-medium">Feed:</span>
+                    <span>{item.feed_type}</span>
                   </div>
-                  {(item.ai_location || item.location) && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{item.ai_location || item.location}</span>
-                    </div>
-                  )}
-                  {item.feed_type && (
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Feed:</span>
-                      <span>{item.feed_type}</span>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     )
   }
@@ -608,7 +512,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                 <TableHead className="w-20 lg:w-24">Ort</TableHead>
                 <TableHead className="w-32 lg:w-36">Schadenstyp</TableHead>
                 <TableHead className="w-32 lg:w-36">Priorität</TableHead>
-                <TableHead className="w-32">Aktionen</TableHead>
+                <TableHead className="w-20 lg:w-32">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -699,7 +603,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                         </Badge>
                       ) : generatingItems.has(item.id) ? (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Sparkles className="h-4 w-4 animate-pulse text-blue-500" />
+                          <Sparkles className="h-3 w-3 animate-pulse text-blue-500" />
                           <span>Analysiere...</span>
                         </div>
                       ) : (
@@ -712,7 +616,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                           }}
                           className="h-6 text-xs px-2 touch-manipulation"
                         >
-                          <Sparkles className="h-4 w-4 mr-1" />
+                          <Sparkles className="h-3 w-3 mr-1" />
                           Analysieren
                         </Button>
                       )}
@@ -734,18 +638,6 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
 
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <CreateCaseDialog item={item}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 touch-manipulation"
-                            title="Fall erstellen"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Briefcase className="h-4 w-4" />
-                          </Button>
-                        </CreateCaseDialog>
-
                         {(item.ai_title || item.ai_summary) && (
                           <Button
                             variant="ghost"
@@ -760,9 +652,9 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                             }
                           >
                             {showOriginalContent.has(item.id) ? (
-                              <Sparkles className="h-4 w-4 text-blue-500" />
+                              <Sparkles className="h-3 w-3 text-blue-500" />
                             ) : (
-                              <FileText className="h-4 w-4" />
+                              <FileText className="h-3 w-3" />
                             )}
                           </Button>
                         )}
@@ -780,7 +672,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                               rel="noopener noreferrer"
                               title="Artikel öffnen"
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-3 w-3" />
                             </a>
                           </Button>
                         )}
@@ -795,7 +687,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                           className="h-6 w-6 p-0 touch-manipulation"
                           title="Ausblenden"
                         >
-                          <EyeOff className="h-4 w-4" />
+                          <EyeOff className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
@@ -885,7 +777,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                           <div className="border-t pt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
                             {(item.ai_location || item.location) && (
                               <div className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
+                                <MapPin className="h-3 w-3" />
                                 <span>{item.ai_location || item.location}</span>
                                 {/* Genauigkeits-Indikator für KI-Orte */}
                                 {item.ai_location && item.ai_location_confidence && (
@@ -903,7 +795,7 @@ export default function NewsItemTable({ items, onHide, onAiGenerated }: NewsItem
                               </div>
                             )}
                             <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
+                              <Clock className="h-3 w-3" />
                               <span>{formatDate(item.published_at)}</span>
                             </div>
                             {item.feed_type && (
