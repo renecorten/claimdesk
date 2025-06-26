@@ -1,0 +1,108 @@
+// Diese Typen sollten idealerweise mit `supabase gen types typescript --project-id <your-project-id> > lib/database.types.ts` generiert werden
+// Für dieses Beispiel definiere ich sie manuell basierend auf dem SQL-Schema.
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      news_cache: {
+        Row: {
+          id: string
+          title: string | null
+          summary: string | null
+          content: string | null
+          published_at: string | null // TIMESTAMPTZ
+          source: string | null
+          location: string | null
+          keywords: string[] | null
+          original_link: string | null
+          feed_type: string | null
+          created_at: string // TIMESTAMPTZ
+          updated_at: string // TIMESTAMPTZ
+          ai_summary: string | null
+          ai_key_points: string[] | null
+          ai_severity: 'low' | 'medium' | 'high' | 'critical' | null
+          ai_damage_category: 'private' | 'commercial' | 'industrial' | 'infrastructure' | null
+          ai_business_interruption: boolean | null
+          ai_estimated_complexity: 'low' | 'medium' | 'high' | 'critical' | null
+        }
+        Insert: {
+          id: string
+          title?: string | null
+          summary?: string | null
+          content?: string | null
+          published_at?: string | null
+          source?: string | null
+          location?: string | null
+          keywords?: string[] | null
+          original_link?: string | null
+          feed_type?: string | null
+          created_at?: string
+          updated_at?: string
+          ai_summary?: string | null
+          ai_key_points?: string[] | null
+          ai_severity?: 'low' | 'medium' | 'high' | 'critical' | null
+          ai_damage_category?: 'private' | 'commercial' | 'industrial' | 'infrastructure' | null
+          ai_business_interruption?: boolean | null
+          ai_estimated_complexity?: 'low' | 'medium' | 'high' | 'critical' | null
+        }
+        Update: {
+          id?: string
+          title?: string | null
+          summary?: string | null
+          content?: string | null
+          published_at?: string | null
+          source?: string | null
+          location?: string | null
+          keywords?: string[] | null
+          original_link?: string | null
+          feed_type?: string | null
+          created_at?: string
+          updated_at?: string
+          ai_summary?: string | null
+          ai_key_points?: string[] | null
+          ai_severity?: 'low' | 'medium' | 'high' | 'critical' | null
+          ai_damage_category?: 'private' | 'commercial' | 'industrial' | 'infrastructure' | null
+          ai_business_interruption?: boolean | null
+          ai_estimated_complexity?: 'low' | 'medium' | 'high' | 'critical' | null
+        }
+        Relationships: []
+      }
+      deleted_news: {
+        Row: {
+          id: string
+          deleted_at: string // TIMESTAMPTZ
+        }
+        Insert: {
+          id: string
+          deleted_at?: string
+        }
+        Update: {
+          id?: string
+          deleted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deleted_news_id_fkey"
+            columns: ["id"]
+            referencedRelation: "news_cache"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
